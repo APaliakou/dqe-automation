@@ -2,8 +2,6 @@ pipeline {
     agent any
 
     environment {
-        DB_USER = 'myuser'
-        DB_PASSWORD = 'mypassword'
         DB_NAME = 'mydatabase'
         DB_HOST = 'postgres'
         DB_PORT = '5432'
@@ -36,18 +34,20 @@ pipeline {
         }
         stage('Run Pytest') {
             steps {
-                sh '''
-                    cd "PyTest DQ Framework"
-                    . venv/bin/activate
-                    pytest tests \
-                        --db_host=$DB_HOST \
-                        --db_port=$DB_PORT \
-                        --db_name=$DB_NAME \
-                        --db_user=$DB_USER \
-                        --db_password=$DB_PASSWORD \
-                        --html=html_report/report.html \
-                        --self-contained-html
-                '''
+                withCredentials([usernamePassword(credentialsId: 'postgres-creds', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASSWORD')]) {
+                    sh '''
+                        cd "PyTest DQ Framework"
+                        . venv/bin/activate
+                        pytest tests \
+                            --db_host=$DB_HOST \
+                            --db_port=$DB_PORT \
+                            --db_name=$DB_NAME \
+                            --db_user=$DB_USER \
+                            --db_password=$DB_PASSWORD \
+                            --html=html_report/report.html \
+                            --self-contained-html
+                    '''
+                }
             }
         }
         stage('Archive Test Report') {
