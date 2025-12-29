@@ -45,7 +45,6 @@ pipeline {
                             --db_user=$DB_USER \
                             --db_password=$DB_PASSWORD \
                             --html=html_report/report.html \
-                            --self-contained-html
                     '''
                 }
             }
