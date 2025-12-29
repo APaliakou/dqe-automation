@@ -1,11 +1,13 @@
 from src.connectors.postgres.postgres_connector import PostgresConnectorContextManager
+import os
+
 
 def test_postgres_connection():
-    db_host = "localhost"
-    db_port = 5434
-    db_name = "mydatabase"
-    db_user = "myuser"
-    db_password = "mypassword"
+    db_host = os.environ.get("DB_HOST", "postgres")
+    db_port = int(os.environ.get("DB_PORT", 5432))
+    db_name = os.environ.get("DB_NAME", "mydatabase")
+    db_user = os.environ.get("DB_USER", "myuser")
+    db_password = os.environ.get("DB_PASSWORD", "mypassword")
 
     with PostgresConnectorContextManager(
         db_host=db_host,
