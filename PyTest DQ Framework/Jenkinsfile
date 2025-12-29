@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        DB_USER = 'myuser'
+        DB_PASSWORD = 'mypassword'
+        DB_NAME = 'mydatabase'
+        DB_HOST = 'postgres'
+        DB_PORT = '5432'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Install Python dependencies') {
+            steps {
+                sh '''
+                    cd "PyTest DQ Framework"
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
+            }
+        }
+        stage('Run Pytest') {
+            steps {
+                sh '''
+                    cd "PyTest DQ Framework"
+                    . venv/bin/activate
+                    pytest tests \
+                        --db_host=$DB_HOST \
+                        --db_port=$DB_PORT \
+                        --db_name=$DB_NAME \
+                        --db_user=$DB_USER \
+                        --db_password=$DB_PASSWORD \
+                        --html=html_report/report.html \
+                        --self-contained-html
+                '''
+            }
+        }
+        stage('Archive Test Report') {
+            steps {
+                archiveArtifacts artifacts: 'PyTest DQ Framework/html_report/**', allowEmptyArchive: true
+                publishHTML(target: [
+                    allowMissing: false,
+                    keepAll: true,
+                    reportDir: 'PyTest DQ Framework/html_report',
+                    reportFiles: 'report.html',
+                    reportName: 'HTML Test Report'
+                ])
+            }
+        }
+    }
+}
